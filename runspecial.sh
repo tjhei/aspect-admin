@@ -1,12 +1,24 @@
 #!/bin/bash
 
-echo "welcome to the aspect test script"
-
 USER=$1
 URL="https://github.com/$USER/aspect.git"
 BRANCH=$2
 DESC="$USER-$BRANCH"
 
+if [ -z "$USER" -o -z "$BRANCH" ];
+then
+ echo "usage: ./runspecial.sh <github-username> <branchname>"
+ exit 1
+fi
+
+mkdir .lockdir >/dev/null 2>&1
+if [ $? -ne 0 ];
+then
+  echo "Lock is active. Exiting."
+  exit 42
+fi
+
+echo "welcome to the aspect test script"
 echo "checking $URL $BRANCH"
 
 cd aspect
@@ -41,3 +53,4 @@ echo "going back to $LASTREV..."
 git checkout $LASTREV
 
 echo "exiting."
+rmdir .lockdir >/dev/null 2>&1
