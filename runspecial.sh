@@ -51,6 +51,7 @@ cd aspect
 git checkout master -q
 echo "going back to $LASTREV..."
 git checkout $LASTREV
+cd ..
 
 echo "exiting."
 rmdir .lockdir >/dev/null 2>&1
