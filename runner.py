@@ -160,9 +160,12 @@ def test(repodir, h, name=""):
     sha1 = subprocess.check_output("cd {0};git rev-parse HEAD".format(repodir),
                                    shell=True).replace("\n","")
     print "running", sha1
-    
+
+    if len(name)>0:
+        name = "-"+name
+
     try:
-        answer = subprocess.check_output("./test.sh {}".format(sha1),
+        answer = subprocess.check_output("./test.sh {} \"{}\"".format(sha1, name),
                                      shell=True,stderr=subprocess.STDOUT)
     except:
         print "failed"
