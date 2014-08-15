@@ -162,7 +162,7 @@ def test(repodir, h, name=""):
     print "running", sha1
 
     if len(name)>0:
-        name = "-"+name
+        name = "-"+name.replace("/","_").replace(":","_")
 
     try:
         answer = subprocess.check_output("./test.sh {} \"{}\"".format(sha1, name),
