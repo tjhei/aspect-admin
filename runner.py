@@ -17,9 +17,9 @@ color_red = "#ff0000"
 
 
 
-def github_commit_status(user, repo, token, sha1, state="success", description=""):
+def github_commit_status(user, repo, token, sha1, state="success", description="", link=""):
     #pending, success, error, failure
-    data = simplejson.dumps({'state' : state, 'context' : 'default', 'description' : description})
+    data = simplejson.dumps({'state' : state, 'context' : 'default', 'description' : description, 'target_url' : link})
     url = "https://api.github.com/repos/{0}/{1}/statuses/{2}".format(github_user, github_repo, sha1)
 
     req = urllib2.Request(url)
