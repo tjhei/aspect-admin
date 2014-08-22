@@ -7,12 +7,28 @@ import sys
 import subprocess
 import simplejson
 from datetime import datetime
+import urllib2, urllib
 
 from config import *
 
 color_green = "#99ff99"
 color_red = "#ff0000"
 
+
+
+
+def github_commit_status(user, repo, token, sha1, state="success", description=""):
+    #pending, success, error, failure
+    data = simplejson.dumps({'state' : state, 'context' : 'default', 'description' : description})
+    url = "https://api.github.com/repos/{0}/{1}/statuses/{2}".format(github_user, github_repo, sha1)
+
+    req = urllib2.Request(url)
+    req.add_header("Authorization", "token {0}".format(token))
+    req.add_data(data)
+    res = urllib2.urlopen(req)
+    result = res.read()
+    #print res.getcode()
+    #print result
 
 def date_to_epoch(dt):
     epoch = datetime.utcfromtimestamp(0)
@@ -183,6 +199,7 @@ def test(repodir, h, name=""):
     print good
     h.add(sha1, good, name, answer)
     h.save()
+    return good
 
 
 whattodo = ""
@@ -197,6 +214,7 @@ if len(sys.argv)<2:
     print "runner.py do-current\n\t\t tests the current revision in this directory"
     print "runner.py test <user>/<repo>:<ref>\n\t\t tests the branch ref from user/repo on github"
     print "test.py delete <sha1>\n\t\t deletes the sha1 from the database (fuzzy matching)"
+    print "runner.py do-pullrequests"
 #    print "test.py render it"    
 else:
     whattodo = sys.argv[1]
@@ -247,15 +265,13 @@ if whattodo == "run-all":
             pass
 
     ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
+
     
 if whattodo == "do-current":
     test(repodir, h, "manual")
 
 
 if whattodo == "pullrequests":
-    import urllib2
-    #r = urllib2.urlopen("https://api.github.com/repos/burnman-project/burnman/pulls").read()
-    #r = urllib2.urlopen("https://api.github.com/repos/tjhei/aspect/pulls").read()
     r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo)).read()
     data = simplejson.loads(r)
     print "found {0} pull requests...".format(len(data))
@@ -282,14 +298,55 @@ if whattodo == "pullrequests":
                     user = comment['user']['login']
                     text = comment['body']
                     if is_allowed(user) and has_hotword(text):
-                        print "  allowed by hotword from ", user
+                        #print "  allowed by hotword from ", user
                         allowed = True
             
             if allowed:
                 pass
 #                print "TODO: testing"
                 
+
+if whattodo == "do-pullrequests":
+    r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo)).read()
+    data = simplejson.loads(r)
+    print "found {0} pull requests...".format(len(data))
+    for pr in data:
+        by = pr['user']['login']
+        title = pr['title']
+        sha = pr['head']['sha']
+        print "PR{}: {} '{}' by {}".format(pr['number'], sha, title, by)
+        #print "  use: python runner.py test {0}:{1}".format(pr['head']['repo']['full_name'],pr['head']['ref'])
+        #print simplejson.dumps(pr, sort_keys=True, indent=4, separators=(',', ': '))
+        if h.have(sha):
+            print "  already tested"
+            result = h.data[sha]
+            print "  ", result['good'], result['name'], result['text']
+        else:
+            allowed = False
+            if is_allowed(by):
+ #               print "  allowed owner"
+                allowed = True
+            else:
+                r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number'])).read()
+                comments = simplejson.loads(r)
+                for comment in comments:
+                    user = comment['user']['login']
+                    text = comment['body']
+                    if is_allowed(user) and has_hotword(text):
+                        print "  allowed by hotword from ", user
+                        allowed = True
+            
+            if allowed:
+                print "testing..."
+                github_commit_status(github_user, github_repo, app_token, sha, "pending", "")
+
+                ret = test(repodir, h, "PR{}".format(pr['number']))
+                if ret:
+                    github_commit_status(github_user, github_repo, app_token, sha, "success", "")
+                else:
+                    github_commit_status(github_user, github_repo, app_token, sha, "failure", "")
                                 
+
 if whattodo == "test":
     #arg1
     r = re.match("^(\w+)/(\w+):([\w-]+)$", arg1)
