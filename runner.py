@@ -338,13 +338,13 @@ if whattodo == "do-pullrequests":
             
             if allowed:
                 print "testing..."
-                github_commit_status(github_user, github_repo, app_token, sha, "pending", "")
+                github_commit_status(github_user, github_repo, token, sha, "pending", "tester is running")
 
                 ret = test(repodir, h, "PR{}".format(pr['number']))
                 if ret:
-                    github_commit_status(github_user, github_repo, app_token, sha, "success", "")
+                    github_commit_status(github_user, github_repo, token, sha, "success", "")
                 else:
-                    github_commit_status(github_user, github_repo, app_token, sha, "failure", "")
+                    github_commit_status(github_user, github_repo, token, sha, "failure", "")
                                 
 
 if whattodo == "test":
