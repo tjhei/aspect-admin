@@ -1,7 +1,10 @@
 import os
 
 # github access token to set commit status
+# fill in here or create token.txt with it
 token  = ""
+if os.path.isfile('token.txt'):
+    token = open('token.txt').read().replace("\n","")
 
 # directory where the aspect git repo sits
 repodir = os.path.abspath("aspect")
