@@ -8,18 +8,11 @@ import subprocess
 import simplejson
 from datetime import datetime
 
-repodir = os.path.abspath("aspect")
-github_user = "geodynamics"
-github_repo = "aspect"
+from config import *
 
 color_green = "#99ff99"
 color_red = "#ff0000"
 
-def is_allowed(username):
-    return True
-
-def has_hotword(text):
-    return False
 
 def date_to_epoch(dt):
     epoch = datetime.utcfromtimestamp(0)
@@ -196,17 +189,15 @@ whattodo = ""
 
 if len(sys.argv)<2:
     print "usage:"
-    print "runner.py newdb"
-    print "runner.py dump"
-    print "runner.py testdata"
-    print "runner.py run-all"
-    print "runner.py pullrequests"
-    print "runner.py do-current"
-    print "runner.py test user/repo:ref"
-
-#    print "test.py delete <sha1>"
+    print "runner.py newdb\n\t\t creates a new database overwriting the existing one"
+    print "runner.py dump\n\t\t lists entry in the current database"
+    print "runner.py testdata\n\t\t puts some test data into the database"
+    print "runner.py run-all\n\t\t runs all revisions on master not tested"
+    print "runner.py pullrequests\n\t\t lists the open pull requests"
+    print "runner.py do-current\n\t\t tests the current revision in this directory"
+    print "runner.py test <user>/<repo>:<ref>\n\t\t tests the branch ref from user/repo on github"
+    print "test.py delete <sha1>\n\t\t deletes the sha1 from the database (fuzzy matching)"
 #    print "test.py render it"    
-#    print "test.py pull requests"
 else:
     whattodo = sys.argv[1]
     arg1 = ""
@@ -333,7 +324,7 @@ if whattodo == "pull  " and arg1 == "requests":
     #for pr in data:
     #    print pr['id']
 
-if whattodo =="test  ":
+if whattodo =="test  not enabled":
     userrepo, ref = arg1.split(":")
     ret = subprocess.check_call("cd {0} && git fetch https://github.com/{1} {2}".format(repodir, userrepo, ref), shell=True)
     ret = subprocess.check_call("cd {0} && git checkout FETCH_HEAD".format(repodir), shell=True)
