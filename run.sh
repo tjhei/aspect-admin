@@ -12,5 +12,13 @@ echo "welcome to the auto/aspect-git script"
 
 python runner.py run-all
 
+echo "now pull requests"
+
+python runner.py do-pullrequests
+
+echo "copying data"
+cp -r logs/* ~/public_html/aspect-logs/
+chmod -R a+rX ~/public_html/aspect-logs/
+
 echo "exiting."
 rmdir $lockdir >/dev/null 2>&1
