@@ -31,3 +31,8 @@ def is_allowed(username):
     
     return False
 
+# make a nice link for a test result:
+def make_link(sha):
+    return "http://www.math.clemson.edu/~heister/aspect-logs/{}/".format(sha)
+
+

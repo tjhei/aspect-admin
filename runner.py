@@ -340,11 +340,22 @@ if whattodo == "do-pullrequests":
                 print "testing..."
                 github_commit_status(github_user, github_repo, token, sha, "pending", "tester is running")
 
+                ret = subprocess.check_call("cd {0} && git fetch https://github.com/{1}/{2} refs/pull/{3}/head -q".format(repodir, github_user, github_repo, pr['number']), shell=True)
+                ret = subprocess.check_call("cd {0} && git checkout {1} -q".format(repodir, sha),
+                                        shell=True)
                 ret = test(repodir, h, "PR{}".format(pr['number']))
+                text = h.data[sha]['text']
+                link = make_link(sha)
+
                 if ret:
-                    github_commit_status(github_user, github_repo, token, sha, "success", "")
+                    github_commit_status(github_user, github_repo, token, sha, "success", text)
                 else:
-                    github_commit_status(github_user, github_repo, token, sha, "failure", "")
+                    github_commit_status(github_user, github_repo, token, sha, "failure", text)
+                ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir),
+                                        shell=True)
+
+            else:
+                print "not allowed! please add a comment containing '/run-tests'"
                                 
 
 if whattodo == "test":
