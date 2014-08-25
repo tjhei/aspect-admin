@@ -332,9 +332,8 @@ if whattodo == "do-pullrequests":
         #print "  use: python runner.py test {0}:{1}".format(pr['head']['repo']['full_name'],pr['head']['ref'])
         #print simplejson.dumps(pr, sort_keys=True, indent=4, separators=(',', ': '))
         if h.have(sha):
-            print "  already tested"
             result = h.data[sha]
-            print "  already tested: {} - '{}':".format(result['good'], result['name'])
+            print "  already tested: good={} - '{}':".format(result['good'], result['name'])
             print result['text']
         else:
             allowed = False
