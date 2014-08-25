@@ -320,7 +320,8 @@ if whattodo == "do-pullrequests":
         if h.have(sha):
             print "  already tested"
             result = h.data[sha]
-            print "  ", result['good'], result['name'], result['text']
+            print "  already tested: {} - '{}':".format(result['good'], result['name'])
+            print result['text']
         else:
             allowed = False
             if is_allowed(by):
@@ -344,13 +345,13 @@ if whattodo == "do-pullrequests":
                 ret = subprocess.check_call("cd {0} && git checkout {1} -q".format(repodir, sha),
                                         shell=True)
                 ret = test(repodir, h, "PR{}".format(pr['number']))
-                text = h.data[sha]['text']
+                text = h.data[sha]['text'].replace("\n","\\n")
                 link = make_link(sha)
 
                 if ret:
-                    github_commit_status(github_user, github_repo, token, sha, "success", text)
+                    github_commit_status(github_user, github_repo, token, sha, "success", text, link)
                 else:
-                    github_commit_status(github_user, github_repo, token, sha, "failure", text)
+                    github_commit_status(github_user, github_repo, token, sha, "failure", text, link)
                 ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir),
                                         shell=True)
 
