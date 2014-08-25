@@ -19,7 +19,7 @@ github_repo = "aspect"
 # has_hotword(text) return True, the PR is tested
 def has_hotword(text):
     if "/run-tests" in text:
-        return true
+        return True
     return False
 
 # return true if user is trusted
