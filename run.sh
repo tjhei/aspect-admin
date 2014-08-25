@@ -16,7 +16,10 @@ echo "now pull requests"
 
 python runner.py do-pullrequests
 
+python runner.py render
+
 echo "copying data"
+cp results.html ~/public_html/aspect-logs/
 cp -r logs/* ~/public_html/aspect-logs/
 chmod -R a+rX ~/public_html/aspect-logs/
 
