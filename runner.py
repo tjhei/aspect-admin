@@ -38,12 +38,23 @@ def epoch_to_date(seconds):
     return datetime.utcfromtimestamp(seconds)
 
 def text_to_html(text):
+    import re
     lines = text.split("\n")
     outlines = []
     for l in lines:
-        if l.endswith(" ... ok"):
+        status = "neutral"
+        if re.match(r'^([ ]*)0 Compiler errors$', l):
+            status = "good"
+        elif re.match(r'^([ ]*)(\d+) Compiler errors$', l):
+            status = "bad"
+        elif re.match(r'^100% tests passed, 0 tests failed out of (\d+)$', l):
+            status = "good"
+        elif re.match(r'^(\d+)% tests passed, (\d+) tests failed out of (\d+)$', l):
+            status = "bad"
+            
+        if status=="good":
             outlines.append("<p style='background-color:{0}'>{1}</p>".format(color_green, l))
-        elif l.endswith(" ... FAIL"):
+        elif status=="bad":
             outlines.append("<p style='background-color:{0}'>{1}</p>".format(color_red, l))
         else:
             outlines.append("{0}<br/>".format(l))
@@ -107,9 +118,9 @@ class history:
         
         sorted_keys = self.sort_keys()
 
-        f.write("<tr><td width='1%'>SHA1</td><td>PASS</td><td>FAIL</td><td>Time</td><td>Comment</td><td>Details</td></tr>\n")
+        f.write("<tr><td width='1%'>SHA1</td><td>PASS</td><td>Time</td><td>Comment</td><td>Details</td></tr>\n")
         for sha in sorted_keys:
-            x = self.data[sha[0]]
+            x = self.data[sha]
             timestr = "?"
             try:
                 dt = epoch_to_date(x['time'])
@@ -117,15 +128,15 @@ class history:
             except:
                 pass
             
-            sha1 = x['sha'].replace("\n","n")
+            sha1 = x['sha1'].replace("\n","n")
             details = "<a href='#' onclick='toggle(\"sha{0}\")'>click</a>".format(sha1)
-            failtext = "<p style='background-color:#99ff99'>{0}</p>".format(x['nfail'])
-            if x['nfail']>0:
-                failtext = "<p style='background-color:#ff0000'>{0}</p>".format(x['nfail'])
-            comment = ""
-            if 'comment' in x.keys():
-                comment = x['comment']
-            f.write("<tr><td>{0}</td><td>{2}</td><td>{3}</td><td>{1}</td><td>{4}</td><td>{5}</td></tr>\n".format(sha1[0:10], timestr, x['npass'], failtext, comment, details))
+            if x['good']:
+                passtxt = "<p style='background-color:#99ff99'>{0}</p>".format("true")
+            else:
+                passtxt = "<p style='background-color:#ff0000'>{0}</p>".format("false")
+            name = x['name']
+            f.write("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(
+                    sha1[0:10], passtxt, timestr, name, details))
             text = text_to_html(x['text'])
             f.write("<tr id='sha{0}' style='display: none'><td colspan='6'>{0}<br/>{1}</td></tr>\n".format(sha1, text))
 
@@ -213,9 +224,9 @@ if len(sys.argv)<2:
     print "runner.py pullrequests\n\t\t lists the open pull requests"
     print "runner.py do-current\n\t\t tests the current revision in this directory"
     print "runner.py test <user>/<repo>:<ref>\n\t\t tests the branch ref from user/repo on github"
-    print "test.py delete <sha1>\n\t\t deletes the sha1 from the database (fuzzy matching)"
-    print "runner.py do-pullrequests"
-#    print "test.py render it"    
+    print "runner.py delete <sha1>\n\t\t deletes the sha1 from the database (fuzzy matching)"
+    print "runner.py do-pullrequests\n\t\t test all open PRs that are okay to be tested"
+    print "runner.py render\n\t\t generate results.html"
 else:
     whattodo = sys.argv[1]
     arg1 = ""
@@ -374,58 +385,11 @@ if whattodo == "test":
         test(repodir, h, arg1)
     
         ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
+
     
+if whattodo =="render":
+    h.render()
 
-
-
-if whattodo == "pull  " and arg1 == "requests":
-    import urllib2
-    #r = requests.get("https://api.github.com/repos/burnman-project/burnman/pulls").content
-    r = urllib2.urlopen("https://api.github.com/repos/burnman-project/burnman/pulls").read()
-    data = simplejson.loads(r)
-    print "found {0} pull requests...".format(len(data))
-    for pr in data:
-        by = pr['user']['login']
-        title = pr['title']
-        print "PR/{0}: '{2}' by {1} ".format(pr['number'], by, title)
-        print "  use: python test.py test {0}:{1}".format(pr['head']['repo']['full_name'],pr['head']['ref'])
-        #print pr['id']
-    #for pr in data:
-    #    print pr['id']
-
-if whattodo =="test  not enabled":
-    userrepo, ref = arg1.split(":")
-    ret = subprocess.check_call("cd {0} && git fetch https://github.com/{1} {2}".format(repodir, userrepo, ref), shell=True)
-    ret = subprocess.check_call("cd {0} && git checkout FETCH_HEAD".format(repodir), shell=True)
-    
-    test(repodir, h, arg1)
-    
-    ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
-
-if whattodo == "run  " and arg1=="all":
-    print repodir
-
-    ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
-    ret = subprocess.check_call("cd {0} && git pull origin -q".format(repodir), shell=True)
-
-    answer = subprocess.check_output("cd {0};git log --format=oneline -n 10".format(repodir),
-                                     shell=True,stderr=subprocess.STDOUT)
-    lines = answer.split("\n")
-    for l in lines[::-1]:
-        sha1 = l.split(" ")[0]
-        if len(sha1)!=40:
-            continue
-        if not h.have(sha1):
-            
-            ret = subprocess.check_call("cd {0};git checkout {1} -q".format(repodir, sha1),
-                                        shell=True)
-
-            test(repodir, h)
-        
-        else:
-            pass
-
-    ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
 
 
 
