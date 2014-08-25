@@ -19,6 +19,9 @@ color_red = "#ff0000"
 
 def github_commit_status(user, repo, token, sha1, state="success", description="", link=""):
     #pending, success, error, failure
+
+    description = description[0:min(len(description),140)] #github doesn't like too long description
+
     data = simplejson.dumps({'state' : state, 'context' : 'default', 'description' : description, 'target_url' : link})
     url = "https://api.github.com/repos/{0}/{1}/statuses/{2}".format(github_user, github_repo, sha1)
 
@@ -356,7 +359,7 @@ if whattodo == "do-pullrequests":
                 ret = subprocess.check_call("cd {0} && git checkout {1} -q".format(repodir, sha),
                                         shell=True)
                 ret = test(repodir, h, "PR{}".format(pr['number']))
-                text = h.data[sha]['text'].replace("\n","\\n")
+                text = h.data[sha]['text']
                 link = make_link(sha)
 
                 if ret:
