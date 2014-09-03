@@ -196,19 +196,7 @@ def test(repodir, h, name=""):
 
     print answer
 
-    good = True
-    import re
-    for l in answer.split("\n"):
-        r = re.match("^\s+(\d+) Compiler errors$", l)
-        if r:
-            n = int(r.group(1))
-            if n>0:
-                good = False
-        r = re.match("^\d+% tests passed, (\d+) tests failed out of \d+$", l)
-        if r:
-            n = int(r.group(1))
-            if n>0:
-                good = False
+    good = is_successful(answer.split("\n"))
 
     print good
     h.add(sha1, good, name, answer)

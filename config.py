@@ -1,4 +1,5 @@
 import os
+import re
 
 # github access token to set commit status
 # fill in here or create token.txt with it
@@ -35,4 +36,21 @@ def is_allowed(username):
 def make_link(sha):
     return "http://www.math.clemson.edu/~heister/aspect-logs/{}/".format(sha)
 
+def is_successful(lines):
+    good = True
+    for l in lines:
+        r = re.match("^\s+(\d+) Compiler errors$", l)
+        if r:
+            n = int(r.group(1))
+            if n>0:
+                good = False
+        r = re.match("^\d+% tests passed, (\d+) tests failed out of \d+$", l)
+        if r:
+            n = int(r.group(1))
+            if n>0:
+                good = False
+        r = re.match("^Manual: FAILED$", l)
+        if r:
+            good = False
 
+    return good
