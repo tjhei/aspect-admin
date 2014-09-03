@@ -19,11 +19,11 @@ cd $basepath
 cd build-$build
 nice ctest -S ../aspect/tests/run_testsuite.cmake -DDESCRIPTION="$build$name" -Dsubmit=$submit -V -j 10 >$logfile 2>&1
 grep "Compiler errors" $logfile >>$summary
-grep "Compiler warnings" $logfile >>$summary
-if [ "$build" != "clang" ]
-then
+#grep "Compiler warnings" $logfile >>$summary
+#if [ "$build" != "clang" ]
+#then
   grep "tests passed" $logfile >>$summary
-fi
+#fi
 }
 
 basepath=`pwd`
@@ -39,6 +39,10 @@ output $basepath $build $sha $name
 
 build="gccpetsc"
 output $basepath $build $sha $name
+
+(
+cd $basepath/aspect/doc/ && make manual.pdf >/dev/null &&
+echo "Manual: OK" || echo "Manual: FAILED") >>$basepath/logs/$sha/summary
 
 cat $basepath/logs/$sha/summary
 
