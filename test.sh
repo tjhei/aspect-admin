@@ -41,8 +41,18 @@ build="gccpetsc"
 output $basepath $build $sha $name
 
 (
-cd $basepath/aspect/doc/ && make manual.pdf >/dev/null &&
-echo "Manual: OK" || echo "Manual: FAILED") >>$basepath/logs/$sha/summary
+cd $basepath/aspect/doc/ && 
+make manual.pdf >/dev/null 2>&1 &&
+echo "Manual: OK" && 
+git checkout manual.pdf || 
+echo "Manual: FAILED";
+cp manual/manual.log $basepath/logs/$sha/manual.log
+) >>$basepath/logs/$sha/summary
+ 
+
+sed -i 's/\([0-9]*\)% tests passed, 0 tests failed out of \([0-9]*\)/tests: \2 passed/' $basepath/logs/$sha/summary 
+
+sed -i 's/\([0-9]*\)% tests passed, \([0-9]*\) tests failed out of \([0-9]*\)/tests: \2 \/ \3 FAILED/' $basepath/logs/$sha/summary 
 
 cat $basepath/logs/$sha/summary
 

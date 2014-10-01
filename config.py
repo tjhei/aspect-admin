@@ -49,6 +49,9 @@ def is_successful(lines):
             n = int(r.group(1))
             if n>0:
                 good = False
+        r = re.match("^tests: \d+ / \d+ FAILED$", l)
+        if r:
+            good = False
         r = re.match("^Manual: FAILED$", l)
         if r:
             good = False

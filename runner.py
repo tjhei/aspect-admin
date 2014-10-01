@@ -54,6 +54,8 @@ def text_to_html(text):
             status = "good"
         elif re.match(r'^(\d+)% tests passed, (\d+) tests failed out of (\d+)$', l):
             status = "bad"
+        elif re.match(r'.*FAILED', l):
+            status = "bad"
             
         if status=="good":
             outlines.append("<p style='background-color:{0}'>{1}</p>".format(color_green, l))
@@ -244,6 +246,7 @@ if whattodo == "delete":
     h.save()
 
 if whattodo == "run-all":
+    ret = subprocess.check_call("cd {0} && git reset --hard -q && git clean -fd -q".format(repodir), shell=True)
     ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
     ret = subprocess.check_call("cd {0} && git pull origin -q".format(repodir), shell=True)
 
@@ -261,11 +264,14 @@ if whattodo == "run-all":
             ret = subprocess.check_call("cd {0} && git checkout {1} -q".format(repodir, sha1),
                                         shell=True)
 
+            ret = subprocess.check_call("cd {0} && git reset --hard -q && git clean -fd -q".format(repodir), shell=True)
             test(repodir, h, "")
+
         
         else:
             pass
 
+    ret = subprocess.check_call("cd {0} && git reset --hard -q && git clean -fd -q".format(repodir), shell=True)
     ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
 
     
@@ -345,7 +351,10 @@ if whattodo == "do-pullrequests":
                 ret = subprocess.check_call("cd {0} && git fetch https://github.com/{1}/{2} refs/pull/{3}/head -q".format(repodir, github_user, github_repo, pr['number']), shell=True)
                 ret = subprocess.check_call("cd {0} && git checkout {1} -q".format(repodir, sha),
                                         shell=True)
+                ret = subprocess.check_call("cd {0} && git reset --hard -q && git clean -fd -q".format(repodir), shell=True)
                 ret = test(repodir, h, "PR{}".format(pr['number']))
+                
+
                 text = h.data[sha]['text']
                 link = make_link(sha)
 
