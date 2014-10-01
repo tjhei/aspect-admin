@@ -143,7 +143,7 @@ class history:
             f.write("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(
                     sha1[0:10], passtxt, timestr, name, details))
             text = text_to_html(x['text'])
-            f.write("<tr id='sha{0}' style='display: none'><td colspan='6'>{0}<br/>{1}</td></tr>\n".format(sha1, text))
+            f.write("<tr id='sha{0}' style='display: none'><td colspan='6'><a href='{2}'>{0}</a><br/>{1}</td></tr>\n".format(sha1, text, make_link(sha1)))
 
         f.write("</table>\n")
 
