@@ -43,9 +43,9 @@ output $basepath $build $sha $name
 (
 cd $basepath/aspect/doc/ && 
 make manual.pdf >/dev/null 2>&1 &&
-echo "Manual: OK" && 
-git checkout manual.pdf || 
+echo "Manual: OK" || 
 echo "Manual: FAILED";
+git checkout -f -q -- manual.pdf;
 cp manual/manual.log $basepath/logs/$sha/manual.log
 ) >>$basepath/logs/$sha/summary
  

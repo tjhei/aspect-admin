@@ -341,13 +341,14 @@ if whattodo == "do-pullrequests":
                     user = comment['user']['login']
                     text = comment['body']
                     if is_allowed(user) and has_hotword(text):
-                        print "  allowed by hotword from ", user
+                        print "  allowed by hotword from {}".format(user)
                         allowed = True
             
             if allowed:
                 print "testing..."
                 github_commit_status(github_user, github_repo, token, sha, "pending", "tester is running")
 
+                ret = subprocess.check_call("cd {0} && git reset --hard -q && git clean -fd -q".format(repodir), shell=True)
                 ret = subprocess.check_call("cd {0} && git fetch https://github.com/{1}/{2} refs/pull/{3}/head -q".format(repodir, github_user, github_repo, pr['number']), shell=True)
                 ret = subprocess.check_call("cd {0} && git checkout {1} -q".format(repodir, sha),
                                         shell=True)
