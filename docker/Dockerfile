@@ -7,7 +7,8 @@ WORKDIR $HOME
 
 RUN git clone https://github.com/geodynamics/aspect.git
 
-CMD script.sh
+ADD script.sh $HOME/script.sh
+CMD /root/script.sh
 
 
 
