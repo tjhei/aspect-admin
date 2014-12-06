@@ -5,7 +5,7 @@ import re
 import os
 import sys
 import subprocess
-import simplejson
+import json as js
 from datetime import datetime
 import urllib2, urllib
 
@@ -22,7 +22,7 @@ def github_commit_status(user, repo, token, sha1, state="success", description="
 
     description = description[0:min(len(description),140)] #github doesn't like too long description
 
-    data = simplejson.dumps({'state' : state, 'context' : 'default', 'description' : description, 'target_url' : link})
+    data = js.dumps({'state' : state, 'context' : 'default', 'description' : description, 'target_url' : link})
     url = "https://api.github.com/repos/{0}/{1}/statuses/{2}".format(github_user, github_repo, sha1)
 
     req = urllib2.Request(url)
@@ -79,11 +79,11 @@ class history:
         f = open(self.dbname, 'r')
         text = f.read()
         f.close()
-        self.data = simplejson.loads(text)
+        self.data = js.loads(text)
         #print "loading {0} entries...".format(len(self.data))
 
     def save(self):
-        text = simplejson.dumps(self.data)
+        text = js.dumps(self.data)
         print "saving {0} entries...".format(len(self.data))
         f = open(self.dbname, 'w')
         f.write(text)
@@ -281,7 +281,7 @@ if whattodo == "do-current":
 
 if whattodo == "pullrequests":
     r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo)).read()
-    data = simplejson.loads(r)
+    data = js.loads(r)
     print "found {0} pull requests...".format(len(data))
     for pr in data:
         by = pr['user']['login']
@@ -301,7 +301,7 @@ if whattodo == "pullrequests":
                 allowed = True
             else:
                 r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number'])).read()
-                comments = simplejson.loads(r)
+                comments = js.loads(r)
                 for comment in comments:
                     user = comment['user']['login']
                     text = comment['body']
@@ -316,7 +316,7 @@ if whattodo == "pullrequests":
 
 if whattodo == "do-pullrequests":
     r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo)).read()
-    data = simplejson.loads(r)
+    data = js.loads(r)
     print "found {0} pull requests...".format(len(data))
     for pr in data:
         by = pr['user']['login']
@@ -336,7 +336,7 @@ if whattodo == "do-pullrequests":
                 allowed = True
             else:
                 r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number'])).read()
-                comments = simplejson.loads(r)
+                comments = js.loads(r)
                 for comment in comments:
                     user = comment['user']['login']
                     text = comment['body']
